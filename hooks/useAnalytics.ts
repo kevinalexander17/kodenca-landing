@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+
+// ID fijo de Google Analytics
+const GA_ID = 'G-WN7WFB0HLP';
 
 interface AnalyticsEvent {
   category: string;
@@ -22,7 +25,7 @@ export function useAnalytics() {
 
   const trackPageView = useCallback((path: string) => {
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
+      window.gtag('config', GA_ID, {
         page_path: path,
       });
     }
