@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Code2, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { HERO, ANIMATIONS } from '@/lib/constants';
+import { Icons } from '@/lib/icons';
 
 export default function Hero() {
   return (
@@ -15,49 +16,45 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Contenido principal */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            {...ANIMATIONS.fadeIn}
             className="text-center lg:text-left"
           >
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-              Transformamos tus ideas en{' '}
-              <span className="text-secondary">soluciones digitales</span>
+              {HERO.title}{' '}
+              <span className="text-secondary">{HERO.titleHighlight}</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-neutral-light mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0">
-              Desarrollamos aplicaciones web y móviles personalizadas que impulsan el crecimiento de tu negocio
+              {HERO.subtitle}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-12">
               <Link
-                href="#contacto"
+                href={HERO.cta.primary.href}
                 className="inline-flex items-center justify-center gap-2 bg-secondary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-secondary/90 transition-colors text-base sm:text-lg font-semibold"
               >
-                Solicitar Consulta Gratuita
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                {HERO.cta.primary.text}
+                <Icons.ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
               <Link
-                href="#casos-exito"
+                href={HERO.cta.secondary.href}
                 className="inline-flex items-center justify-center gap-2 bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-white/20 transition-colors text-base sm:text-lg font-semibold"
               >
-                Ver Demostraciones
+                {HERO.cta.secondary.text}
               </Link>
             </div>
 
             {/* Estadísticas */}
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 max-w-2xl mx-auto lg:mx-0">
-              <div className="bg-white/10 rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-secondary mb-1 sm:mb-2">100%</div>
-                <div className="text-neutral-light text-sm sm:text-base">Código Personalizado</div>
-              </div>
-              <div className="bg-white/10 rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-secondary mb-1 sm:mb-2">24/7</div>
-                <div className="text-neutral-light text-sm sm:text-base">Soporte Técnico</div>
-              </div>
-              <div className="bg-white/10 rounded-xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-secondary mb-1 sm:mb-2">1-2</div>
-                <div className="text-neutral-light text-sm sm:text-base">Semanas de Entrega</div>
-              </div>
+              {HERO.stats.map((stat, index) => (
+                <div key={index} className="bg-white/10 rounded-xl p-3 sm:p-4 text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-secondary mb-1 sm:mb-2">
+                    {stat.value}
+                  </div>
+                  <div className="text-neutral-light text-sm sm:text-base">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
 
@@ -75,26 +72,19 @@ export default function Hero() {
                 muted
                 playsInline
                 className="w-full h-auto"
-                poster="/images/hero-poster.jpg"
+                poster={HERO.media.poster}
               >
-                <source src="/videos/hero-demo.mp4" type="video/mp4" />
+                <source src={HERO.media.video} type="video/mp4" />
               </video>
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
             </div>
 
             {/* Elementos flotantes */}
             <motion.div
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              {...ANIMATIONS.float}
               className="absolute -top-4 -left-4 sm:-top-6 sm:-left-6 bg-secondary/20 p-3 sm:p-4 rounded-xl hidden sm:block"
             >
-              <Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
+              <Icons.Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
             </motion.div>
             <motion.div
               animate={{
@@ -108,7 +98,7 @@ export default function Hero() {
               }}
               className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-secondary/20 p-3 sm:p-4 rounded-xl hidden sm:block"
             >
-              <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
+              <Icons.Shield className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
             </motion.div>
           </motion.div>
         </div>

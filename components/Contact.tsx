@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import emailjs from '@emailjs/browser';
 import { useState } from 'react';
-import { Send, Calendar, Clock, Info } from 'lucide-react';
+import { FORM_CONFIG, EMAIL_CONFIG, ANIMATIONS } from '@/lib/constants';
+import { Icons } from '@/lib/icons';
+import { dateUtils, validationRules } from '@/lib/utils';
 
 type FormData = {
   nombres: string;
@@ -27,14 +29,9 @@ export default function Contact() {
     formState: { errors }
   } = useForm<FormData>();
 
-  // Obtener fecha mínima (día actual)
-  const today = new Date();
-  const minDate = today.toISOString().split('T')[0];
-  
-  // Obtener fecha máxima (30 días después)
-  const maxDate = new Date(today);
-  maxDate.setDate(today.getDate() + 30);
-  const maxDateString = maxDate.toISOString().split('T')[0];
+  // Obtener fechas usando utilidades
+  const minDate = dateUtils.getToday();
+  const maxDate = dateUtils.getFutureDate(FORM_CONFIG.contact.meeting.maxDaysAhead);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -42,8 +39,8 @@ export default function Contact() {
 
     try {
       await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
         {
           title: data.title,
           nombres: data.nombres,
@@ -53,7 +50,7 @@ export default function Contact() {
           fechaReunion: data.fechaReunion,
           horaReunion: data.horaReunion
         },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+        EMAIL_CONFIG.publicKey
       );
 
       setSubmitStatus('success');
@@ -65,17 +62,17 @@ export default function Contact() {
     }
   };
 
+  const { contact: formConfig } = FORM_CONFIG;
+
   return (
     <section id="contacto" className="py-20 bg-primary-light">
       <div className="max-w-4xl mx-auto px-4">
         <motion.h2 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...ANIMATIONS.fadeIn}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
           className="text-3xl md:text-4xl font-bold text-center mb-6 text-white"
         >
-          Contáctanos
+          {formConfig.title}
         </motion.h2>
         
         <motion.p
@@ -85,7 +82,7 @@ export default function Contact() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="text-center text-neutral-light max-w-2xl mx-auto mb-12"
         >
-          Agenda una consulta gratuita y descubre cómo podemos ayudarte a transformar tu negocio
+          {formConfig.subtitle}
         </motion.p>
 
         <motion.form
@@ -99,13 +96,15 @@ export default function Contact() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="nombres" className="block text-sm font-medium text-primary mb-1">
-                Nombre completo <span className="text-accent">*</span>
+                {formConfig.fields.nombres.label} {formConfig.fields.nombres.required && <span className="text-accent">*</span>}
               </label>
               <input
                 type="text"
                 id="nombres"
-                placeholder="Tu nombre y apellido"
-                {...register('nombres', { required: 'El nombre es requerido' })}
+                placeholder={formConfig.fields.nombres.placeholder}
+                {...register('nombres', { 
+                  required: formConfig.fields.nombres.required ? validationRules.required('El nombre') : false 
+                })}
                 className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
               />
               {errors.nombres && (
@@ -115,17 +114,17 @@ export default function Contact() {
 
             <div>
               <label htmlFor="correo" className="block text-sm font-medium text-primary mb-1">
-                Correo Electrónico <span className="text-accent">*</span>
+                {formConfig.fields.correo.label} {formConfig.fields.correo.required && <span className="text-accent">*</span>}
               </label>
               <input
                 type="email"
                 id="correo"
-                placeholder="ejemplo@empresa.com"
+                placeholder={formConfig.fields.correo.placeholder}
                 {...register('correo', { 
-                  required: 'El correo es requerido',
+                  required: formConfig.fields.correo.required ? validationRules.required('El correo') : false,
                   pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Correo electrónico inválido'
+                    value: validationRules.email.pattern,
+                    message: validationRules.email.message
                   }
                 })}
                 className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
@@ -139,12 +138,12 @@ export default function Contact() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="empresa" className="block text-sm font-medium text-primary mb-1">
-                Empresa
+                {formConfig.fields.empresa.label}
               </label>
               <input
                 type="text"
                 id="empresa"
-                placeholder="Nombre de tu empresa"
+                placeholder={formConfig.fields.empresa.placeholder}
                 {...register('empresa')}
                 className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
               />
@@ -152,13 +151,15 @@ export default function Contact() {
 
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-primary mb-1">
-                Asunto <span className="text-accent">*</span>
+                {formConfig.fields.title.label} {formConfig.fields.title.required && <span className="text-accent">*</span>}
               </label>
               <input
                 type="text"
                 id="title"
-                placeholder="¿En qué podemos ayudarte?"
-                {...register('title', { required: 'El asunto es requerido' })}
+                placeholder={formConfig.fields.title.placeholder}
+                {...register('title', { 
+                  required: formConfig.fields.title.required ? validationRules.required('El asunto') : false 
+                })}
                 className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
               />
               {errors.title && (
@@ -169,13 +170,15 @@ export default function Contact() {
 
           <div>
             <label htmlFor="mensaje" className="block text-sm font-medium text-primary mb-1">
-              Mensaje <span className="text-accent">*</span>
+              {formConfig.fields.mensaje.label} {formConfig.fields.mensaje.required && <span className="text-accent">*</span>}
             </label>
             <textarea
               id="mensaje"
               rows={4}
-              placeholder="Cuéntanos sobre tu proyecto o consulta"
-              {...register('mensaje', { required: 'El mensaje es requerido' })}
+              placeholder={formConfig.fields.mensaje.placeholder}
+              {...register('mensaje', { 
+                required: formConfig.fields.mensaje.required ? validationRules.required('El mensaje') : false 
+              })}
               className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
             />
             {errors.mensaje && (
@@ -185,8 +188,8 @@ export default function Contact() {
           
           <div className="bg-primary-light/5 p-4 rounded-lg">
             <div className="flex items-center mb-4">
-              <Calendar className="w-5 h-5 text-secondary mr-2" />
-              <h3 className="text-lg font-medium text-primary">Agenda una cita</h3>
+              <Icons.Calendar className="w-5 h-5 text-secondary mr-2" />
+              <h3 className="text-lg font-medium text-primary">{formConfig.meeting.title}</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,7 +202,7 @@ export default function Contact() {
                     type="date"
                     id="fechaReunion"
                     min={minDate}
-                    max={maxDateString}
+                    max={maxDate}
                     {...register('fechaReunion')}
                     className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
                   />
@@ -210,63 +213,70 @@ export default function Contact() {
                 <label htmlFor="horaReunion" className="block text-sm font-medium text-primary mb-1">
                   Hora preferida
                 </label>
-                <div className="relative">
-                  <select
+                <div>
+                  <input
+                    type="time"
                     id="horaReunion"
+                    min="09:00"
+                    max="18:00"
                     {...register('horaReunion')}
-                    className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent appearance-none"
-                  >
-                    <option value="">Seleccionar hora</option>
-                    <option value="09:00">09:00 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="12:00">12:00 PM</option>
-                    <option value="14:00">02:00 PM</option>
-                    <option value="15:00">03:00 PM</option>
-                    <option value="16:00">04:00 PM</option>
-                    <option value="17:00">05:00 PM</option>
-                  </select>
-                  <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral pointer-events-none" />
+                    className="w-full px-4 py-2 border border-neutral-light rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent"
+                  />
                 </div>
               </div>
             </div>
             
-            <div className="mt-4 flex items-start gap-2 text-sm text-neutral">
-              <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <p>Al seleccionar fecha y hora, intentaremos ajustarnos a tu preferencia. Te confirmaremos por correo electrónico.</p>
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-secondary">
+              <div className="flex items-start">
+                <Icons.Info className="w-5 h-5 text-secondary mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-primary">
+                  <p className="font-medium">Información importante:</p>
+                  <ul className="mt-1 space-y-1 text-xs">
+                    <li>• Las citas están disponibles de lunes a viernes, de 9:00 AM a 18:00 PM</li>
+                    <li>• Recibirás una confirmación por correo electrónico</li>
+                    <li>• La consulta inicial es completamente gratuita</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 bg-secondary text-white px-6 py-3 rounded-lg font-semibold hover:bg-secondary-dark transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              'Enviando...'
-            ) : (
-              <>
-                Enviar Solicitud
-                <Send className="w-5 h-5" />
-              </>
-            )}
-          </button>
-
+          {/* Status messages */}
           {submitStatus === 'success' && (
-            <div className="p-4 bg-green-100 text-green-800 rounded-lg">
-              <p className="text-center font-medium">
-                ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.
-              </p>
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <Icons.CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                <p className="text-green-700 text-sm">{formConfig.messages.success}</p>
+              </div>
             </div>
           )}
 
           {submitStatus === 'error' && (
-            <div className="p-4 bg-red-100 text-red-800 rounded-lg">
-              <p className="text-center font-medium">
-                Hubo un error al enviar el mensaje. Por favor, intenta nuevamente.
-              </p>
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <Icons.AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                <p className="text-red-700 text-sm">{formConfig.messages.error}</p>
+              </div>
             </div>
           )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-secondary text-white py-3 px-6 rounded-lg hover:bg-secondary/90 transition-colors disabled:bg-neutral-light disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {formConfig.messages.submitting}
+              </>
+            ) : (
+              <>
+                <Icons.Send className="w-4 h-4" />
+                Enviar Mensaje
+              </>
+            )}
+          </button>
         </motion.form>
       </div>
     </section>
